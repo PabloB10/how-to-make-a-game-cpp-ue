@@ -1,0 +1,61 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build docs to validate SVG and head changes",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"docs:build"
+			],
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Docs dev",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"docs:dev"
+			],
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Run dev to verify homepage and icons",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"docs:dev"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Serve dev after footer change",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"docs:dev"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Dev after footer center/size",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"docs:dev"
+			],
+			"group": "build"
+		}
+	]
+}

@@ -234,14 +234,64 @@ void APlatformCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Add Input Mapping Context
+	// Validate all required assets before proceeding
+	if (!ensure(DefaultMappingContext))
+	{
+		UE_LOG(LogTemp, Error, TEXT("DefaultMappingContext not set on %s"), *GetName());
+		return;
+	}
+
+	if (!ensure(JumpAction))
+	{
+		UE_LOG(LogTemp, Error, TEXT("JumpAction not set on %s"), *GetName());
+	}
+
+	if (!ensure(MoveAction))
+	{
+		UE_LOG(LogTemp, Error, TEXT("MoveAction not set on %s"), *GetName());
+	}
+
+	if (!ensure(LookAction))
+	{
+		UE_LOG(LogTemp, Error, TEXT("LookAction not set on %s"), *GetName());
+	}
+
+	if (!ensure(SprintAction))
+	{
+		UE_LOG(LogTemp, Error, TEXT("SprintAction not set on %s"), *GetName());
+	}
+
+	// Add Input Mapping Context with proper validation
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			UE_LOG(LogTemp, Log, TEXT("Successfully added Input Mapping Context for %s"), *GetName());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to get Enhanced Input Subsystem for %s"), *GetName());
 		}
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No PlayerController found for %s, input will not work"), *GetName());
+	}
+
+	// Validate camera components
+	if (!ensure(CameraBoom))
+	{
+		UE_LOG(LogTemp, Error, TEXT("CameraBoom component not created on %s"), *GetName());
+	}
+
+	if (!ensure(FollowCamera))
+	{
+		UE_LOG(LogTemp, Error, TEXT("FollowCamera component not created on %s"), *GetName());
+	}
+
+	// Log successful initialization
+	UE_LOG(LogTemp, Log, TEXT("PlatformCharacter %s initialized successfully"), *GetName());
 }
 
 void APlatformCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -269,50 +319,86 @@ void APlatformCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 void APlatformCharacter::Move(const FInputActionValue& Value)
 {
+	// Validate that we have a controller
+	if (!ensure(Controller))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Controller available for movement on %s"), *GetName());
+		return;
+	}
+
 	// Input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
+	// Early return if no input
+	if (MovementVector.IsNearlyZero())
 	{
-		// Find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// Get forward direction
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-		// Get right direction
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		// Add movement
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+		return;
 	}
+
+	// Find out which way is forward
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	// Get forward direction
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+	// Get right direction
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+	// Add movement
+	AddMovementInput(ForwardDirection, MovementVector.Y);
+	AddMovementInput(RightDirection, MovementVector.X);
 }
 
 void APlatformCharacter::Look(const FInputActionValue& Value)
 {
+	// Validate that we have a controller
+	if (!ensure(Controller))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Controller available for look input on %s"), *GetName());
+		return;
+	}
+
 	// Input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
+	// Early return if no input
+	if (LookAxisVector.IsNearlyZero())
 	{
-		// Add yaw and pitch input to controller
-		AddControllerYawInput(LookAxisVector.X);
-		AddControllerPitchInput(LookAxisVector.Y);
+		return;
 	}
+
+	// Add yaw and pitch input to controller
+	AddControllerYawInput(LookAxisVector.X);
+	AddControllerPitchInput(LookAxisVector.Y);
 }
 
 void APlatformCharacter::StartSprint()
 {
+	// Validate movement component exists
+	if (!ensure(GetCharacterMovement()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("No CharacterMovement component on %s"), *GetName());
+		return;
+	}
+
 	bIsSprinting = true;
 	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	UE_LOG(LogTemp, Log, TEXT("Sprint started on %s"), *GetName());
 }
 
 void APlatformCharacter::StopSprint()
 {
+	// Validate movement component exists
+	if (!ensure(GetCharacterMovement()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("No CharacterMovement component on %s"), *GetName());
+		return;
+	}
+
 	bIsSprinting = false;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	UE_LOG(LogTemp, Log, TEXT("Sprint stopped on %s"), *GetName());
 }
 ```
 
@@ -411,6 +497,63 @@ void APlatformCharacter::StopSprint()
 - [ ] Camera follows character smoothly
 - [ ] No compilation errors
 - [ ] No runtime errors in Output Log
+
+### Step 2.5: Implementation Validation & Troubleshooting (15 minutes)
+
+**Complete Implementation Dependencies:**
+
+Before testing, ensure this order was followed:
+
+1. ✅ Header file created with all UPROPERTY declarations
+2. ✅ Build.cs file updated with required modules
+3. ✅ .cpp file implemented with validation
+4. ✅ Input Action assets created in Content Browser
+5. ✅ Input Mapping Context created and configured
+6. ✅ Blueprint derived from C++ class
+7. ✅ Blueprint configured with Input Asset references
+8. ✅ Game Mode created and set as default
+9. ✅ World Settings updated to use custom Game Mode
+
+**Common Issues & Solutions:**
+
+| Problem                | Likely Cause                       | Solution                                  |
+| ---------------------- | ---------------------------------- | ----------------------------------------- |
+| Character doesn't move | Input Actions not set in Blueprint | Check BP_PlatformCharacter Details panel  |
+| Compilation errors     | Missing module in Build.cs         | Verify EnhancedInput module added         |
+| Input not responding   | IMC not added to controller        | Check BeginPlay() validation logs         |
+| Sprint not working     | Movement component null            | Verify CharacterMovement component exists |
+| Camera not following   | SpringArm/Camera setup error       | Check component creation in constructor   |
+
+**Validation Log Messages:**
+
+When working correctly, you should see these messages in Output Log:
+
+```
+LogTemp: Successfully added Input Mapping Context for BP_PlatformCharacter_C_0
+LogTemp: PlatformCharacter BP_PlatformCharacter_C_0 initialized successfully
+LogTemp: Sprint started on BP_PlatformCharacter_C_0
+LogTemp: Sprint stopped on BP_PlatformCharacter_C_0
+```
+
+**If You See Error Messages:**
+
+```
+LogTemp: Error: DefaultMappingContext not set on BP_PlatformCharacter_C_0
+```
+
+→ Solution: Set DefaultMappingContext in Blueprint Details panel
+
+```
+LogTemp: Warning: No Controller available for movement
+```
+
+→ Solution: Ensure character is possessed by PlayerController in Game Mode
+
+**Performance Validation:**
+
+- [ ] Frame rate stable (check Stats → FPS in PIE)
+- [ ] No excessive log spam
+- [ ] Smooth character movement with no hitches
 
 **Expected Behavior:**
 
@@ -553,6 +696,84 @@ public:
 - Check Sprint Action binding (Started/Completed events)
 - Verify MaxWalkSpeed is being changed in StartSprint/StopSprint
 - Add debug logs to confirm functions are called
+
+---
+
+## Implementation Dependency Chart
+
+Understanding the correct implementation order is crucial for success:
+
+```mermaid
+graph TD
+    A[Create C++ Project] --> B[Enable Plugins]
+    B --> C[Create PlatformCharacter.h]
+    C --> D[Update Build.cs]
+    D --> E[Implement PlatformCharacter.cpp]
+    E --> F[Compile C++ Code]
+    F --> G[Create Input Assets]
+    G --> H[Create Blueprint Class]
+    H --> I[Configure Blueprint]
+    I --> J[Create GameMode]
+    J --> K[Set World Settings]
+    K --> L[Test & Validate]
+
+    style A fill:#ff9999
+    style F fill:#ffcc99
+    style L fill:#99ff99
+```
+
+### Critical Dependencies
+
+| Step                        | Depends On                  | Failure Impact       |
+| --------------------------- | --------------------------- | -------------------- |
+| **PlatformCharacter.cpp**   | Header + Build.cs           | Won't compile        |
+| **Blueprint Configuration** | C++ compilation             | Assets won't appear  |
+| **Input Response**          | IMC added in BeginPlay      | No input             |
+| **Movement**                | CharacterMovement component | Character won't move |
+| **Camera**                  | SpringArm + Camera setup    | No visual feedback   |
+
+### Visual Debugging Guide
+
+**Enable Debug Visualization:**
+
+1. **In C++ (if needed):**
+
+   ```cpp
+   // Add to PlatformCharacter.h
+   UPROPERTY(EditAnywhere, Category = "Debug")
+   bool bShowDebugInfo = false;
+
+   // Add to Tick() in .cpp
+   if (bShowDebugInfo)
+   {
+       DrawDebugString(GetWorld(), GetActorLocation() + FVector(0,0,100),
+           FString::Printf(TEXT("Speed: %.1f"), GetVelocity().Size()),
+           nullptr, FColor::White, 0.0f);
+   }
+   ```
+
+2. **In Console (during PIE):**
+
+   ```
+   stat FPS          // Show frame rate
+   stat Memory       // Show memory usage
+   showdebug ai      // Show AI debugging (for later milestones)
+   ```
+
+3. **Blueprint Debugging:**
+   - Enable "Print String" nodes for key events
+   - Use "Draw Debug Sphere" for location validation
+   - Check "Enable Tick" in Component Details
+
+**Common Debug Visualizations:**
+
+| Color Code | Meaning                       |
+| ---------- | ----------------------------- |
+| 🔴 Red     | Error state / Failed trace    |
+| 🟢 Green   | Success state / Valid target  |
+| 🟡 Yellow  | Warning / Processing          |
+| 🔵 Blue    | Information / Player position |
+| 🟣 Purple  | Focus/Selected object         |
 
 ## Next Steps
 

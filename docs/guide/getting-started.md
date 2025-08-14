@@ -36,4 +36,8 @@ Quick links
 - **UE Setup**: /guide/ue-setup
 - **Companion Repo Setup**: /guide/companion-repo-setup
 - **C++ Primer**: /reference/cpp-primer-for-unreal
+- **Testing Guide**: /guide/testing
+- **Error Handling Best Practices**: /guide/error-handling-best-practices
+- **Console Variables Guide**: /guide/console-variables-guide
+- **Common Mistakes**: /guide/common-mistakes
 - **Troubleshooting**: /guide/troubleshooting

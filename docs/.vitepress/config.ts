@@ -3,11 +3,26 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'UE Platformer in C++',
   description: 'Modern, concise guidance for building a UE 5.6+ platformer in C++',
+  base: '/how-to-make-a-game-cpp-ue/',
   cleanUrls: true,
   lastUpdated: true,
   head: [
-    ['meta', { name: 'theme-color', content: '#26913a' }],
-    ['link', { rel: 'icon', href: '/logo.svg' }],
+    ['meta', { name: 'theme-color', content: '#0F1B2D' }],
+    [
+      'link',
+      { rel: 'icon', href: '/how-to-make-a-game-cpp-ue/favicon.svg', type: 'image/svg+xml' },
+    ],
+    ['link', { rel: 'icon', href: '/how-to-make-a-game-cpp-ue/logo.svg', type: 'image/svg+xml' }],
+    [
+      'meta',
+      {
+        name: 'description',
+        content:
+          'Learn to build a UE 5.6+ platformer in C++ with modern patterns, comprehensive guides, and professional code quality.',
+      },
+    ],
+    ['meta', { property: 'og:image', content: '/how-to-make-a-game-cpp-ue/logo-large.svg' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
   ],
   themeConfig: {
     search: {
@@ -61,6 +76,8 @@ export default defineConfig({
         text: 'Support',
         items: [
           { text: 'Testing', link: '/guide/testing' },
+          { text: 'Error Handling', link: '/guide/error-handling-best-practices' },
+          { text: 'Console Variables', link: '/guide/console-variables-guide' },
           { text: 'Debugging', link: '/guide/debugging' },
           { text: 'Common Mistakes', link: '/guide/common-mistakes' },
           { text: 'Troubleshooting', link: '/guide/troubleshooting' },
@@ -96,6 +113,8 @@ export default defineConfig({
           text: 'Support',
           items: [
             { text: 'Testing', link: '/guide/testing' },
+            { text: 'Error Handling', link: '/guide/error-handling-best-practices' },
+            { text: 'Console Variables', link: '/guide/console-variables-guide' },
             { text: 'Debugging', link: '/guide/debugging' },
             { text: 'Common Mistakes', link: '/guide/common-mistakes' },
             { text: 'Troubleshooting', link: '/guide/troubleshooting' },
@@ -155,7 +174,13 @@ export default defineConfig({
       text: 'Edit this page on GitHub',
     },
     footer: {
-      message: 'Docs for the UE 5.6+ Platformer in C++',
+      message:
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;">\
+           <a href="https://github.com/grzott" target="_blank" rel="noopener" title="@grzott on GitHub" style="display:inline-block;">\
+             <img src="https://github.com/grzott.png" alt="@grzott" width="44" height="44" style="display:block;border-radius:50%;border:1px solid rgba(255,255,255,.18)"/>\
+           </a>\
+           <span style="opacity:.9">Maintained by <a href="https://github.com/grzott" target="_blank" rel="noopener">@grzott</a></span>\
+         </div>',
     },
   },
 })

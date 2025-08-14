@@ -5,6 +5,9 @@ hero:
   name: UE 5.6+ Platformer in C++
   text: Modern, concise, production-minded guidance for engineers
   tagline: Build the game in a separate repo; use this site as your blueprint.
+  image:
+    src: /logo-large.svg
+    alt: UE C++ Platformer Logo
   actions:
     - theme: brand
       text: Start here

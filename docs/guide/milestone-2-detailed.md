@@ -193,11 +193,25 @@ void UInteractionComponent::BeginPlay()
 void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	// Only update if component is enabled and we have a valid world
+	if (!IsComponentTickEnabled() || !GetWorld())
+	{
+		return;
+	}
+
 	UpdateFocusActor();
 }
 
 void UInteractionComponent::UpdateFocusActor()
 {
+	// Validate owner before proceeding
+	if (!ensure(GetOwner()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("InteractionComponent has no valid owner"));
+		return;
+	}
+
 	AActor* NewFocusActor = FindBestInteractable();
 
 	if (NewFocusActor != CurrentFocusActor)
@@ -208,7 +222,7 @@ void UInteractionComponent::UpdateFocusActor()
 		// Broadcast focus change event
 		OnFocusChanged.Broadcast(NewFocusActor, OldFocus);
 
-		UE_LOG(LogTemp, Log, TEXT("Focus changed from %s to %s"),
+		UE_LOG(LogTemp, VeryVerbose, TEXT("Focus changed from %s to %s"),
 			OldFocus ? *OldFocus->GetName() : TEXT("None"),
 			NewFocusActor ? *NewFocusActor->GetName() : TEXT("None"));
 	}
@@ -216,13 +230,36 @@ void UInteractionComponent::UpdateFocusActor()
 
 AActor* UInteractionComponent::FindBestInteractable()
 {
+	// Validate owner is a pawn
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn)
+	if (!ensure(OwnerPawn))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("InteractionComponent owner is not a Pawn"));
 		return nullptr;
+	}
 
+	// Validate player controller
 	APlayerController* PC = Cast<APlayerController>(OwnerPawn->GetController());
-	if (!PC || !PC->PlayerCameraManager)
+	if (!PC)
+	{
+		// Not an error - AI characters might use this component
 		return nullptr;
+	}
+
+	// Validate camera manager
+	if (!ensure(PC->PlayerCameraManager))
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerController has no PlayerCameraManager"));
+		return nullptr;
+	}
+
+	// Validate world context
+	UWorld* World = GetWorld();
+	if (!ensure(World))
+	{
+		UE_LOG(LogTemp, Error, TEXT("No valid world context for interaction trace"));
+		return nullptr;
+	}
 
 	// Get camera location and forward direction
 	FVector CameraLocation = PC->PlayerCameraManager->GetCameraLocation();
@@ -233,9 +270,10 @@ AActor* UInteractionComponent::FindBestInteractable()
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(OwnerPawn);
 	QueryParams.bTraceComplex = false;
+	QueryParams.bReturnPhysicalMaterial = false;
 
 	TArray<FHitResult> HitResults;
-	bool bHit = GetWorld()->SweepMultiByChannel(
+	bool bHit = World->SweepMultiByChannel(
 		HitResults,
 		CameraLocation,
 		TraceEnd,
@@ -248,9 +286,37 @@ AActor* UInteractionComponent::FindBestInteractable()
 	// Debug visualization
 	if (bShowDebugTraces)
 	{
-		DrawDebugSphere(GetWorld(), CameraLocation + (ForwardDirection * InteractionRange * 0.5f),
-			InteractionRadius, 16, bHit ? FColor::Green : FColor::Red, false, 0.1f);
-		DrawDebugLine(GetWorld(), CameraLocation, TraceEnd, FColor::Yellow, false, 0.1f, 0, 2.0f);
+		// Draw interaction sphere at trace endpoint
+		FVector SphereCenter = CameraLocation + (ForwardDirection * InteractionRange * 0.5f);
+		DrawDebugSphere(World, SphereCenter, InteractionRadius, 16,
+			bHit ? FColor::Green : FColor::Red, false, 0.1f);
+
+		// Draw camera ray
+		DrawDebugLine(World, CameraLocation, TraceEnd, FColor::Yellow, false, 0.1f, 0, 2.0f);
+
+		// Draw camera origin
+		DrawDebugSphere(World, CameraLocation, 5.0f, 8, FColor::Blue, false, 0.1f);
+
+		// Draw hit points for all results
+		for (const FHitResult& Hit : HitResults)
+		{
+			if (Hit.GetActor())
+			{
+				FColor HitColor = Hit.GetActor()->Implements<UInteractable>() ? FColor::Cyan : FColor::Orange;
+				DrawDebugSphere(World, Hit.Location, 3.0f, 8, HitColor, false, 0.1f);
+
+				// Draw actor name
+				DrawDebugString(World, Hit.Location + FVector(0, 0, 50),
+					Hit.GetActor()->GetName(), nullptr, HitColor, 0.1f);
+			}
+		}
+
+		// Draw current focus actor
+		if (CurrentFocusActor)
+		{
+			DrawDebugSphere(World, CurrentFocusActor->GetActorLocation(), 15.0f, 12,
+				FColor::Magenta, false, 0.1f);
+		}
 	}
 
 	if (!bHit)
