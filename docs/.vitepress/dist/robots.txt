@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://your-username.github.io/how-to-make-a-game-cpp-ue/sitemap.xml
