@@ -174,13 +174,7 @@ export default defineConfig({
       text: 'Edit this page on GitHub',
     },
     footer: {
-      message:
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;">\
-           <a href="https://github.com/grzott" target="_blank" rel="noopener" title="@grzott on GitHub" style="display:inline-block;">\
-             <img src="https://github.com/grzott.png" alt="@grzott" width="44" height="44" style="display:block;border-radius:50%;border:1px solid rgba(255,255,255,.18)"/>\
-           </a>\
-           <span style="opacity:.9">Maintained by <a href="https://github.com/grzott" target="_blank" rel="noopener">@grzott</a></span>\
-         </div>',
+      message: '',
     },
   },
 })

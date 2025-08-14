@@ -56,6 +56,36 @@
 				"docs:dev"
 			],
 			"group": "build"
+		},
+		{
+			"label": "Dev verify theme footer slot",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"docs:dev"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Dev after footer dedupe/hover",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"docs:dev"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Dev after css spacing tweak",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"docs:dev"
+			],
+			"group": "build"
 		}
 	]
 }
